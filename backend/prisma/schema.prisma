@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  phone       String   @unique
+  name        String
+  role        String   // "collector" | "recycler" | "admin"
+  language    String   @default("hi") // "hi" | "mr" | "en"
+  recyclerId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  dataMaturity String  @default("demo") // "demo" | "synthetic" | "field_collected" | "verified"
+
+  transactions Transaction[]
+  auditLogs    AuditLog[]
+}
+
+model Material {
+  id                   String   @id @default(uuid())
+  category             String   // e.g. "PCB", "Cable", "Battery", "CRT", "Motor"
+  subCategory          String?
+  description          String?
+  imageUrl             String
+  approxWeightKg       Float
+  condition            String   // "good" | "damaged" | "mixed"
+  sourceType           String   @default("collector_pickup") // "collector_pickup" | "aggregator" | "other"
+  estimatedValueMinInr Float
+  estimatedValueMaxInr Float
+  dataMaturity         String   @default("demo") // "demo" | "synthetic" | "field_collected" | "verified"
+  createdAt            DateTime @default(now())
+
+  transactions Transaction[]
+}
+
+model PriceRecord {
+  id                     String   @id @default(uuid())
+  materialCategory       String
+  locationLat            Float
+  locationLng            Float
+  areaName               String
+  dateTime               DateTime @default(now())
+  buyingPriceInr         Float
+  quotedPriceInr         Float
+  unit                   String   @default("per_kg") // "per_kg" | "per_unit"
+  recyclerOrAggregatorId String
+  recyclerName           String?
+  dataMaturity           String   @default("demo") // "demo" | "synthetic" | "field_collected" | "verified"
+  createdAt              DateTime @default(now())
+}
+
+model Recycler {
+  id                   String   @id @default(uuid())
+  name                 String
+  locationLat          Float
+  locationLng          Float
+  address              String
+  materialsAccepted    String   // JSON string array e.g. '["PCB","Battery","Cable"]'
+  authorizationDetails String
+  authorizationStatus  String   @default("authorized") // "authorized" | "pending" | "unverified"
+  phone                String
+  email                String?
+  offeredRatesJson     String   // JSON string map e.g. '{"PCB":120,"Battery":85}'
+  pickupAvailable      Boolean  @default(true)
+  serviceAreaRadiusKm  Float    @default(25.0)
+  dataMaturity         String   @default("demo") // "demo" | "synthetic" | "field_collected" | "verified"
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id                  String   @id // Lot ID e.g. "DH-2026-0001"
+  collectorId         String
+  collectorName       String?
+  collectorPhone      String?
+  materialId          String
+  weightKg            Float
+  quotedPriceInr      Float
+  finalPriceInr       Float?
+  recyclerId          String?
+  recyclerName        String?
+  collectionLat       Float
+  collectionLng       Float
+  collectionArea      String?
+  handoverLat         Float?
+  handoverLng         Float?
+  handoverArea        String?
+  dateTime            DateTime @default(now())
+  paymentStatus       String   @default("pending") // "pending" | "partial" | "paid"
+  paymentMethod       String?  // "cash" | "digital"
+  transactionStatus   String   @default("draft") // "draft" | "matched" | "offer_sent" | "offer_accepted" | "handed_over" | "recycler_confirmed" | "paid"
+  dataMaturity        String   @default("demo") // "demo" | "synthetic" | "field_collected" | "verified"
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  collector           User     @relation(fields: [collectorId], references: [id])
+  material            Material @relation(fields: [materialId], references: [id])
+  recycler            Recycler? @relation(fields: [recyclerId], references: [id])
+  traceability        TraceabilityRecord?
+  anomalyFlags        AnomalyFlag[]
+}
+
+model TraceabilityRecord {
+  id                      String   @id @default(uuid())
+  lotId                   String   @unique
+  photosJson              String   // JSON string array of URLs
+  weightKg                Float
+  timestamp               DateTime @default(now())
+  gpsLat                  Float
+  gpsLng                  Float
+  gpsAddress              String?
+  handoverReferenceNumber String
+  recyclerConfirmation   Boolean  @default(false)
+  timelineJson            String   // JSON array of [{stage, timestamp, note, actorRole}]
+  dataMaturity            String   @default("demo")
+
+  transaction             Transaction @relation(fields: [lotId], references: [id], onDelete: Cascade)
+}
+
+model AnomalyFlag {
+  id                   String   @id @default(uuid())
+  transactionId        String
+  materialCategory     String
+  locationArea         String
+  finalPriceInr        Float
+  expectedMeanPriceInr Float
+  standardDeviationInr Float
+  zScore               Float
+  severity             String   @default("medium") // "low" | "medium" | "high"
+  status               String   @default("pending_review") // "pending_review" | "resolved" | "dismissed"
+  details              String
+  detectedAt           DateTime @default(now())
+  dataMaturity         String   @default("demo")
+
+  transaction          Transaction @relation(fields: [transactionId], references: [id])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String
+  action       String
+  targetEntity String
+  targetId     String?
+  details      String?
+  timestamp    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+}
