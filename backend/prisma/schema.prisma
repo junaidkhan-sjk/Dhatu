@@ -63,7 +63,7 @@ model Recycler {
   address              String
   materialsAccepted    String   // JSON string array e.g. '["PCB","Battery","Cable"]'
   authorizationDetails String
-  authorizationStatus  String   @default("authorized") // "authorized" | "pending" | "unverified"
+  authorizationStatus  String   @default("authorized") // "authorized" | "pending" | "unverified" | "revoked" | "expired"
   phone                String
   email                String?
   offeredRatesJson     String   // JSON string map e.g. '{"PCB":120,"Battery":85}'

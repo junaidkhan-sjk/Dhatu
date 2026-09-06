@@ -9,7 +9,10 @@ import '../services/sync_engine.dart';
 import 'recycler_profile_screen.dart';
 import 'recycler_offer_screen.dart';
 import 'main_shell.dart';
-
+import '../services/ai_classifier_service.dart';
+import '../services/local_database.dart';
+import '../widgets/core/audio_playback_button.dart';
+import 'package:uuid/uuid.dart';
 class CreateLotFlow extends StatefulWidget {
   const CreateLotFlow({super.key});
 
@@ -23,6 +26,7 @@ class _CreateLotFlowState extends State<CreateLotFlow> {
   String? _subCategory = 'Mixed Grade Motherboard';
   double _weightKg = 12.5;
   String _photoUrl = '/uploads/sample_pcb.jpg';
+  String _predictedCategory = 'PCB';
   int _aiConfidence = 88;
   double _estMinInr = 1500;
   double _estMaxInr = 1800;
@@ -235,18 +239,30 @@ class _CreateLotFlowState extends State<CreateLotFlow> {
             Expanded(
               flex: 2,
               child: ElevatedButton(
-                onPressed: () {
-                  setState(() => _currentStep = 2);
+                onPressed: () async {
+                  setState(() => _loading = true);
+                  final predicted = await AiClassifierService().classifyImage(_photoUrl);
+                  setState(() {
+                    _predictedCategory = predicted;
+                    _selectedCategory = predicted;
+                    _subCategory = 'Standard $predicted';
+                    _aiConfidence = 92;
+                    _currentStep = 2;
+                    _loading = false;
+                  });
+                  _recalculateEstimates();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F6B6B),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text(
-                  'फोटो चुनें (Use Photo) →',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
+                child: _loading 
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                  : const Text(
+                      'फोटो चुनें (Use Photo) →',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
               ),
             ),
           ],
@@ -386,7 +402,19 @@ class _CreateLotFlowState extends State<CreateLotFlow> {
         SizedBox(
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              if (_predictedCategory != _selectedCategory) {
+                // Log the override
+                final db = LocalDatabase.instance.database;
+                await (await db).insert('ai_feedback', {
+                  'id': const Uuid().v4(),
+                  'imagePath': _photoUrl,
+                  'predictedCategory': _predictedCategory,
+                  'actualCategory': _selectedCategory,
+                  'syncStatus': 'Saved Offline',
+                  'createdAt': DateTime.now().toIso8601String(),
+                });
+              }
               setState(() => _currentStep = 3);
             },
             style: ElevatedButton.styleFrom(
@@ -607,21 +635,8 @@ class _CreateLotFlowState extends State<CreateLotFlow> {
               const SizedBox(height: 20),
 
               // Audio Playback Button
-              ElevatedButton.icon(
-                onPressed: () {
-                  final text = 'आपके $_weightKg किलो $_selectedCategory का अनुमानित मूल्य ${_estMinInr.toInt()} से ${_estMaxInr.toInt()} रुपये है।';
-                  AudioService().speak(text, lang: loc.currentLanguage);
-                },
-                icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF0F172A)),
-                label: const Text(
-                  '🔊 भाव सुनें (Listen to Valuation)',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE0A526),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
+              AudioPlaybackButton(
+                textToSpeak: 'आपके $_weightKg किलो $_selectedCategory का अनुमानित मूल्य ${_estMinInr.toInt()} से ${_estMaxInr.toInt()} रुपये है।',
               ),
             ],
           ),

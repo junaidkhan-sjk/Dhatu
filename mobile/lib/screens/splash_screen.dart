@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'language_selection_screen.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_manager.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -14,9 +16,8 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LanguageSelectionScreen()),
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
         );
       }
     });
@@ -24,55 +25,54 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Provider.of<ThemeManager>(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF0F6B6B), // Deep Teal
+      backgroundColor: theme.backgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Dummy App Logo placeholder (since we don't have the actual generated icon image file here)
             Container(
-              width: 90,
-              height: 90,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFFE0A526), // Marigold Amber
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: const [
+                color: theme.primaryColor,
+                shape: BoxShape.circle,
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 16,
-                    offset: Offset(0, 6),
-                  )
+                    color: theme.shadowDark,
+                    blurRadius: 20,
+                    offset: const Offset(10, 10),
+                  ),
+                  BoxShadow(
+                    color: theme.shadowLight,
+                    blurRadius: 20,
+                    offset: const Offset(-10, -10),
+                  ),
                 ],
               ),
-              child: const Icon(
-                Icons.recycling_rounded,
-                size: 54,
-                color: Color(0xFF0F6B6B),
-              ),
+              child: const Icon(Icons.recycling, size: 80, color: Colors.white),
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'धातु · DHATU',
+            const SizedBox(height: 32),
+            Text(
+              'Dhatu',
               style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: theme.textColor,
                 letterSpacing: 1.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'हर तार में मूल्य · Value in Every Wire',
+            Text(
+              'Har Taar Mein Mulya',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFFE0A526),
+                color: theme.subtitleColor,
               ),
-            ),
-            const SizedBox(height: 48),
-            const CircularProgressIndicator(
-              color: Color(0xFFE0A526),
-              strokeWidth: 3,
             ),
           ],
         ),

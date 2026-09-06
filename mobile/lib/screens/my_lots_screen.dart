@@ -20,6 +20,16 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
   Widget build(BuildContext context) {
     final loc = LocalizationService();
     final sync = Provider.of<SyncEngine>(context);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final primaryText = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF061E18);
+    final secondaryText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final cardBg = theme.cardColor;
+    final borderColor = isDark ? const Color(0xFF1E3A8A).withOpacity(0.35) : const Color(0xFF061E18).withOpacity(0.12);
+    final headerBg = isDark ? const Color(0xFF0B132B) : const Color(0xFFFFFFFF);
+    final highlightColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0D9488);
+
     final allLots = sync.localLots;
 
     final filteredLots = _filterStatus == 'all'
@@ -27,17 +37,18 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
         : allLots.where((l) => l.transactionStatus == _filterStatus).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1120),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        title: const Text('मेरे डिजिटल लॉट (My Material Lots)', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(
+          'मेरे डिजिटल लॉट (My Material Lots)',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: primaryText),
+        ),
         actions: [
           IconButton(
             onPressed: () => sync.syncPendingQueue(),
             icon: Icon(
               Icons.sync_rounded,
-              color: sync.isSyncing ? Colors.blueAccent : const Color(0xFFE0A526),
+              color: sync.isSyncing ? Colors.blueAccent : highlightColor,
             ),
           ),
         ],
@@ -49,8 +60,8 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
             MaterialPageRoute(builder: (_) => const CreateLotFlow()),
           );
         },
-        backgroundColor: const Color(0xFFE0A526),
-        foregroundColor: Colors.black,
+        backgroundColor: isDark ? const Color(0xFF2563EB) : const Color(0xFF061E18),
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
         label: const Text('नया लॉट (+ New Lot)', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
@@ -59,16 +70,19 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
           // Filter Tabs
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: const Color(0xFF0F172A),
+            decoration: BoxDecoration(
+              color: headerBg,
+              border: Border(bottom: BorderSide(color: borderColor)),
+            ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('all', 'सभी लॉट (All)'),
-                  _buildFilterChip('draft', 'ड्राफ्ट (Draft)'),
-                  _buildFilterChip('matched', 'रीसायकलर मैच (Matched)'),
-                  _buildFilterChip('handed_over', 'हस्तांतरित (Handed Over)'),
-                  _buildFilterChip('paid', 'भुगतान पूर्ण (Paid)'),
+                  _buildFilterChip('all', 'सभी लॉट (All)', isDark),
+                  _buildFilterChip('draft', 'ड्राफ्ट (Draft)', isDark),
+                  _buildFilterChip('matched', 'रीसायकलर मैच (Matched)', isDark),
+                  _buildFilterChip('handed_over', 'हस्तांतरित (Handed Over)', isDark),
+                  _buildFilterChip('paid', 'भुगतान पूर्ण (Paid)', isDark),
                 ],
               ),
             ),
@@ -80,11 +94,11 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined, size: 64, color: Colors.white24),
+                        Icon(Icons.inventory_2_outlined, size: 64, color: secondaryText.withOpacity(0.4)),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'कोई लॉट नहीं मिला (No Lots Found)',
-                          style: TextStyle(color: Colors.white60, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: secondaryText, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -107,9 +121,9 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: cardBg,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white10),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,10 +133,10 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
                                 children: [
                                   Text(
                                     lot.id,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.tealAccent,
+                                      color: highlightColor,
                                       fontFamily: 'monospace',
                                     ),
                                   ),
@@ -137,13 +151,13 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF0F6B6B).withOpacity(0.2),
+                                      color: isDark ? const Color(0xFF172554) : const Color(0xFF061E18).withOpacity(0.06),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Center(
                                       child: Text(
                                         lot.material.category[0],
-                                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFFE0A526)),
+                                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: highlightColor),
                                       ),
                                     ),
                                   ),
@@ -154,21 +168,21 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
                                       children: [
                                         Text(
                                           lot.material.category,
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText),
                                         ),
                                         Text(
                                           '${lot.weightKg} kg · ${lot.transactionStatus.toUpperCase()}',
-                                          style: const TextStyle(fontSize: 12, color: Colors.white60),
+                                          style: TextStyle(fontSize: 12, color: secondaryText),
                                         ),
                                       ],
                                     ),
                                   ),
                                   Text(
                                     '₹${(lot.finalPriceInr ?? lot.quotedPriceInr).toInt()}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w900,
-                                      color: Color(0xFFE0A526),
+                                      color: primaryText,
                                     ),
                                   ),
                                 ],
@@ -185,7 +199,7 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
     );
   }
 
-  Widget _buildFilterChip(String status, String label) {
+  Widget _buildFilterChip(String status, String label, bool isDark) {
     final isSelected = _filterStatus == status;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -195,11 +209,13 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
         labelStyle: TextStyle(
           fontSize: 11,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.black : Colors.white70,
+          color: isSelected
+              ? Colors.white
+              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
         ),
-        backgroundColor: const Color(0xFF1E293B),
-        selectedColor: const Color(0xFFE0A526),
-        checkmarkColor: Colors.black,
+        backgroundColor: isDark ? const Color(0xFF172554).withOpacity(0.4) : const Color(0xFF061E18).withOpacity(0.06),
+        selectedColor: isDark ? const Color(0xFF2563EB) : const Color(0xFF061E18),
+        checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onSelected: (val) {
           setState(() => _filterStatus = status);
@@ -215,19 +231,19 @@ class _MyLotsScreenState extends State<MyLotsScreen> {
     switch (state) {
       case SyncState.savedOffline:
         color = Colors.amber;
-        label = '🟡 Saved Offline';
+        label = 'Saved Offline';
         break;
       case SyncState.syncing:
         color = Colors.blue;
-        label = '🔵 Synchronizing';
+        label = 'Synchronizing';
         break;
       case SyncState.synced:
-        color = Colors.tealAccent;
-        label = '🟢 Synced';
+        color = const Color(0xFF0D9488);
+        label = 'Synced';
         break;
       case SyncState.attentionRequired:
         color = Colors.redAccent;
-        label = '🔴 Attention';
+        label = 'Attention';
         break;
     }
 

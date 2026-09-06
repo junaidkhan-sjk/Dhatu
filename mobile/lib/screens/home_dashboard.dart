@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/localization_service.dart';
 import '../services/sync_engine.dart';
 import '../services/audio_service.dart';
+import '../services/theme_service.dart';
 import 'create_lot_flow.dart';
 import 'price_board_screen.dart';
 import 'my_lots_screen.dart';
@@ -15,21 +16,25 @@ class HomeDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = LocalizationService();
     final sync = Provider.of<SyncEngine>(context);
+    final themeService = Provider.of<ThemeService>(context);
+    final isDark = themeService.isDarkMode;
+
+    final primaryText = isDark ? ThemeService.darkTextPrimary : ThemeService.lightTextPrimary;
+    final secondaryText = isDark ? ThemeService.darkTextSecondary : ThemeService.lightTextSecondary;
+    final accentColor = isDark ? ThemeService.darkAccent : ThemeService.lightAccent;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1120),
+      backgroundColor: isDark ? ThemeService.darkCanvas : ThemeService.lightCanvas,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F6B6B),
+                color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFF061E18),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.recycling_rounded, color: Color(0xFFE0A526), size: 20),
+              child: Icon(Icons.recycling_rounded, color: isDark ? const Color(0xFF38BDF8) : Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
             Column(
@@ -37,18 +42,19 @@ class HomeDashboard extends StatelessWidget {
               children: [
                 Text(
                   loc.tr('app_name'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: primaryText,
                     letterSpacing: 1,
                   ),
                 ),
                 Text(
                   loc.tr('tagline'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: Color(0xFFE0A526),
+                    color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0D9488),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -70,17 +76,21 @@ class HomeDashboard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: sync.isSyncing
-                    ? Colors.blue.withOpacity(0.2)
+                    ? Colors.blue.withOpacity(0.15)
                     : sync.offlineCount > 0
-                        ? Colors.amber.withOpacity(0.2)
-                        : Colors.teal.withOpacity(0.2),
+                        ? Colors.amber.withOpacity(0.15)
+                        : isDark
+                            ? const Color(0xFF1E3A8A).withOpacity(0.3)
+                            : const Color(0xFF061E18).withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: sync.isSyncing
                       ? Colors.blue
                       : sync.offlineCount > 0
                           ? Colors.amber
-                          : Colors.teal,
+                          : isDark
+                              ? const Color(0xFF38BDF8).withOpacity(0.4)
+                              : const Color(0xFF0D9488).withOpacity(0.4),
                   width: 1,
                 ),
               ),
@@ -95,7 +105,9 @@ class HomeDashboard extends StatelessWidget {
                           ? Colors.blue
                           : sync.offlineCount > 0
                               ? Colors.amber
-                              : Colors.tealAccent,
+                              : isDark
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF0D9488),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -113,7 +125,9 @@ class HomeDashboard extends StatelessWidget {
                           ? Colors.blueAccent
                           : sync.offlineCount > 0
                               ? Colors.amber
-                              : Colors.tealAccent,
+                              : isDark
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF047857),
                     ),
                   ),
                 ],
@@ -131,17 +145,19 @@ class HomeDashboard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0F6B6B), Color(0xFF0B4E4E)],
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF0B132B), const Color(0xFF172554)]
+                      : [const Color(0xFF061E18), const Color(0xFF0F382E)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x330F6B6B),
+                    color: isDark ? const Color(0x33000000) : const Color(0x22061E18),
                     blurRadius: 16,
-                    offset: Offset(0, 8),
+                    offset: const Offset(0, 8),
                   )
                 ],
               ),
@@ -184,12 +200,12 @@ class HomeDashboard extends StatelessWidget {
                         'सर्किट बोर्ड (PCB): ',
                         style: TextStyle(fontSize: 14, color: Colors.white),
                       ),
-                      const Text(
+                      Text(
                         '₹140/kg',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFFE0A526),
+                          color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF86EFAC),
                         ),
                       ),
                       const Spacer(),
@@ -200,7 +216,7 @@ class HomeDashboard extends StatelessWidget {
                             lang: loc.currentLanguage,
                           );
                         },
-                        icon: const Icon(Icons.volume_up_rounded, color: Color(0xFFE0A526)),
+                        icon: Icon(Icons.volume_up_rounded, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF86EFAC)),
                         tooltip: 'Listen to rates',
                       ),
                     ],
@@ -208,11 +224,11 @@ class HomeDashboard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Huge Primary CTA Button: + Create New Lot
             SizedBox(
-              height: 72,
+              height: 68,
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(
@@ -220,23 +236,23 @@ class HomeDashboard extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => const CreateLotFlow()),
                   );
                 },
-                icon: const Icon(Icons.add_photo_alternate_rounded, size: 30),
+                icon: const Icon(Icons.add_photo_alternate_rounded, size: 28),
                 label: Text(
                   loc.tr('create_new_lot'),
-                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE0A526),
-                  foregroundColor: const Color(0xFF0F172A),
+                  backgroundColor: isDark ? const Color(0xFF2563EB) : const Color(0xFF061E18),
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  elevation: 6,
-                  shadowColor: const Color(0x66E0A526),
+                  elevation: 4,
+                  shadowColor: isDark ? const Color(0x662563EB) : const Color(0x44061E18),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Quick Navigation Grid
             Row(
@@ -247,7 +263,7 @@ class HomeDashboard extends StatelessWidget {
                     icon: Icons.bar_chart_rounded,
                     title: 'भाव सूची (Price Board)',
                     subtitle: '5 सामग्रियों के ताज़ा दर',
-                    color: Colors.blueAccent,
+                    iconColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0D9488),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -263,7 +279,7 @@ class HomeDashboard extends StatelessWidget {
                     icon: Icons.inventory_2_rounded,
                     title: 'मेरे लॉट (My Lots)',
                     subtitle: 'ट्रेसिबिलिटी व स्थिति',
-                    color: Colors.tealAccent,
+                    iconColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF064E3B),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -274,43 +290,48 @@ class HomeDashboard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Safety Tip Card with Audio
+            // Safety Tip Card with Audio (Neumorphic Raised)
             Container(
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.amber.withOpacity(0.3), width: 1.5),
+              decoration: ThemeService.neuRaised(
+                isDark: isDark,
+                radius: 20,
+                depth: 5,
+                blur: 12,
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.15),
+                      color: isDark ? const Color(0xFF172554) : const Color(0xFF061E18).withOpacity(0.06),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.health_and_safety_rounded, color: Color(0xFFE0A526), size: 28),
+                    child: Icon(
+                      Icons.health_and_safety_rounded,
+                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0D9488),
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'सुरक्षा सलाह (Safety Tip)',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFE0A526),
+                            color: primaryText,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'बैटरी या एसिड छूते समय दस्ताने पहनें। बैटरी को कभी न तोड़ें।',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                          style: TextStyle(fontSize: 12, color: secondaryText),
                         ),
                       ],
                     ),
@@ -322,7 +343,10 @@ class HomeDashboard extends StatelessWidget {
                         lang: loc.currentLanguage,
                       );
                     },
-                    icon: const Icon(Icons.volume_up_rounded, color: Colors.amber),
+                    icon: Icon(
+                      Icons.volume_up_rounded,
+                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0D9488),
+                    ),
                   ),
                 ],
               ),
@@ -338,38 +362,44 @@ class HomeDashboard extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryText = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF061E18);
+    final secondaryText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final borderColor = isDark ? const Color(0xFF1E3A8A).withOpacity(0.35) : const Color(0xFF061E18).withOpacity(0.12);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white10),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 28),
+            Icon(icon, color: iconColor, size: 26),
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: primaryText,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: Colors.white54,
+                color: secondaryText,
               ),
             ),
           ],

@@ -1,176 +1,110 @@
 import 'package:flutter/material.dart';
-import '../models/lot_model.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_manager.dart';
+import '../widgets/core/dhatu_card.dart';
 
 class LotDetailsScreen extends StatelessWidget {
-  final MaterialLot lot;
-  const LotDetailsScreen({super.key, required this.lot});
+  const LotDetailsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Provider.of<ThemeManager>(context);
+
+    // Timeline mockup
+    final List<Map<String, dynamic>> timeline = [
+      {'status': 'Created', 'time': '10:00 AM, 12 May', 'done': true},
+      {'status': 'Estimated', 'time': '10:01 AM, 12 May', 'done': true},
+      {'status': 'Matched (GreenTech)', 'time': '10:05 AM, 12 May', 'done': true},
+      {'status': 'Accepted', 'time': '10:15 AM, 12 May', 'done': true},
+      {'status': 'Handed Over', 'time': '11:30 AM, 12 May', 'done': true},
+      {'status': 'Confirmed', 'time': '11:32 AM, 12 May', 'done': true},
+      {'status': 'Paid', 'time': 'Pending...', 'done': false},
+    ];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1120),
+      backgroundColor: theme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        title: Text('Lot #DHT-1004', style: TextStyle(color: theme.textColor)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('लॉट विवरण (${lot.id})', style: const TextStyle(fontSize: 16, color: Colors.white)),
+        iconTheme: IconThemeData(color: theme.textColor),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Info Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF0F6B6B), width: 1.5),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DhatuCard(
+                child: Column(
+                  children: [
+                    Text('Mixed Copper Wires', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: theme.textColor)),
+                    const SizedBox(height: 8),
+                    Text('Final Weight: 5.2 kg', style: TextStyle(fontSize: 16, color: theme.subtitleColor)),
+                    const Divider(height: 32),
+                    Text('Total Earned', style: TextStyle(fontSize: 14, color: theme.subtitleColor)),
+                    Text('₹1,404', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: theme.primaryColor)),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        lot.material.category,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      Text(
-                        '₹${(lot.finalPriceInr ?? lot.quotedPriceInr).toInt()}',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFFE0A526)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'वजन: ${lot.weightKg} kg · ${lot.material.subCategory ?? "Standard"}',
-                    style: const TextStyle(fontSize: 13, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 12),
-                  if (lot.recyclerName != null)
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0B1120),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.business_rounded, color: Colors.tealAccent, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'रीसायकलर: ${lot.recyclerName}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+              const SizedBox(height: 24),
+              Text('Timeline', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.textColor)),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: timeline.length,
+                  itemBuilder: (context, index) {
+                    final item = timeline[index];
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: item['done'] ? theme.primaryColor : Colors.grey,
+                              ),
+                              child: Icon(Icons.check, size: 14, color: theme.onPrimaryColor),
                             ),
+                            if (index != timeline.length - 1)
+                              Container(
+                                width: 2,
+                                height: 40,
+                                color: item['done'] ? theme.primaryColor : Colors.grey,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['status'],
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: item['done'] ? FontWeight.bold : FontWeight.normal,
+                                  color: theme.textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(item['time'], style: TextStyle(color: theme.subtitleColor, fontSize: 12)),
+                              const SizedBox(height: 16),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Traceability Timeline Header
-            const Text(
-              'डिजिटल ट्रेसिबिलिटी टाइमलाइन\nTraceability Audit Timeline',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-
-            // Real Chronological Stages
-            ..._buildTimelineEntries(),
-          ],
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  List<Widget> _buildTimelineEntries() {
-    final timeline = lot.traceability?.timeline ?? [
-      TimelineEvent(
-        stage: 'Lot Created',
-        timestamp: lot.dateTime,
-        note: 'सामग्री की फोटो, वजन और डिजिटल लॉट पंजीकृत किया गया।',
-        actorRole: 'collector',
-      ),
-      TimelineEvent(
-        stage: 'Price Estimated',
-        timestamp: lot.dateTime,
-        note: 'AI द्वारा श्रेणी पहचान व अनुमानित मूल्य निकाला गया।',
-        actorRole: 'system',
-      ),
-    ];
-
-    return timeline.asMap().entries.map((entry) {
-      final idx = entry.key;
-      final e = entry.value;
-      final isLast = idx == timeline.length - 1;
-
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              Container(
-                width: 14,
-                height: 14,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE0A526),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              if (!isLast)
-                Container(
-                  width: 2,
-                  height: 60,
-                  color: const Color(0xFF0F6B6B),
-                ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        e.stage,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.tealAccent),
-                      ),
-                      Text(
-                        e.timestamp.length > 10 ? e.timestamp.substring(0, 10) : e.timestamp,
-                        style: const TextStyle(fontSize: 10, color: Colors.white54, fontFamily: 'monospace'),
-                      ),
-                    ],
-                  ),
-                  if (e.note != null) ...[
-                    const SizedBox(height: 4),
-                    Text(e.note!, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    }).toList();
   }
 }

@@ -4,8 +4,79 @@
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 min-h-screen selection:bg-teal-500 selection:text-white;
+    @apply bg-[#E8EEF5] text-slate-800 dark:bg-[#0D1322] dark:text-slate-100 min-h-screen selection:bg-sky-500 selection:text-white dark:selection:bg-sky-500 dark:selection:text-slate-900 font-sans transition-colors duration-200;
   }
+}
+
+/* ─── Neumorphic (Soft UI) Utility Classes ──────────────────── */
+
+/* Raised / Extruded Surfaces */
+.neu-raised {
+  background: #E8EEF5;
+  box-shadow: 6px 6px 14px #B8C5D6, -5px -5px 12px #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.dark .neu-raised {
+  background: #131C31;
+  box-shadow: 6px 6px 16px #060911, -4px -4px 12px rgba(29, 42, 71, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Inset / Recessed (Inputs, Wells, Pressed States) */
+.neu-inset {
+  background: #DFE6F0;
+  box-shadow: inset 3px 3px 6px #B8C5D6, inset -3px -3px 6px #FFFFFF;
+  border: 1px solid rgba(184, 197, 214, 0.4);
+}
+
+.dark .neu-inset {
+  background: #0B101D;
+  box-shadow: inset 3px 3px 6px #05070D, inset -2px -2px 5px rgba(29, 42, 71, 0.4);
+  border: 1px solid rgba(30, 41, 59, 0.6);
+}
+
+/* Tactile Soft Buttons */
+.neu-btn {
+  background: #E8EEF5;
+  box-shadow: 5px 5px 10px #B8C5D6, -4px -4px 10px #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  transition: all 0.15s ease;
+}
+
+.neu-btn:hover {
+  box-shadow: 6px 6px 14px #B8C5D6, -5px -5px 12px #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.neu-btn:active {
+  box-shadow: inset 2px 2px 5px #B8C5D6, inset -2px -2px 5px #FFFFFF;
+  transform: translateY(1px);
+}
+
+.dark .neu-btn {
+  background: #131C31;
+  box-shadow: 5px 5px 12px #060911, -3px -3px 8px rgba(29, 42, 71, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .neu-btn:hover {
+  box-shadow: 6px 6px 14px #060911, -4px -4px 10px rgba(29, 42, 71, 0.6);
+}
+
+.dark .neu-btn:active {
+  box-shadow: inset 2px 2px 5px #060911, inset -2px -2px 4px rgba(29, 42, 71, 0.3);
+}
+
+/* Tactile Accent Button */
+.neu-btn-primary {
+  background: linear-gradient(135deg, #0F766E 0%, #0D9488 100%);
+  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35);
+}
+
+.dark .neu-btn-primary {
+  background: linear-gradient(135deg, #2563EB 0%, #38BDF8 100%);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -13,12 +84,16 @@
   height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.05);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(11, 19, 43, 0.6);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(15, 107, 107, 0.5);
+  background: rgba(6, 30, 24, 0.2);
   border-radius: 4px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 107, 107, 0.8);
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(30, 58, 138, 0.4);
+  border-radius: 4px;
 }

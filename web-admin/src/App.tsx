@@ -10,7 +10,9 @@ import {
   RefreshCw,
   MapPin,
   Check,
-  X
+  X,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface AnomalyFlag {
@@ -72,6 +74,12 @@ interface PlatformMetrics {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('dhatu_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
   const [activeTab, setActiveTab] = useState<'anomalies' | 'recyclers' | 'pricing' | 'transactions' | 'activity'>('anomalies');
   const [anomalies, setAnomalies] = useState<AnomalyFlag[]>([]);
   const [recyclers, setRecyclers] = useState<Recycler[]>([]);
@@ -80,6 +88,19 @@ export default function App() {
   const [metrics, setMetrics] = useState<PlatformMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('dhatu_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const fetchAdminData = async () => {
     try {
@@ -147,54 +168,71 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-navy-950 text-greenblack-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Top Header */}
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+      <header className="bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-navy-800/80 sticky top-0 z-40 transition-colors shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-950/40">
-                <ShieldAlert className="w-6 h-6 text-slate-950" />
+              <div className="w-10 h-10 rounded-xl bg-greenblack-900 dark:bg-navy-700 flex items-center justify-center text-white shadow-md">
+                <ShieldAlert className="w-5 h-5 text-emerald-400 dark:text-blue-300" />
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-extrabold text-xl tracking-tight text-white">DHATU</span>
-                  <span className="text-xs bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30 font-mono">
-                    ADMIN & COMPLIANCE PORTAL
+                  <span className="font-extrabold text-xl tracking-tight text-greenblack-950 dark:text-white">DHATU</span>
+                  <span className="text-xs bg-greenblack-100 text-greenblack-900 dark:bg-navy-800 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full border border-greenblack-900/10 dark:border-blue-700/40 font-mono">
+                    ADMIN & COMPLIANCE
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">National Informal E-Waste Channel Regularization</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Informal E-Waste Regularization Platform</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              <span className="inline-flex items-center text-xs px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">
-                dataMaturity: synthetic & demo
-              </span>
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                aria-label="Toggle Theme"
+                className="flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-navy-800 dark:hover:bg-navy-700 text-greenblack-900 dark:text-slate-200 border border-slate-200 dark:border-navy-700 transition-colors"
+                title={`Switch to ${theme === 'dark' ? 'Light Mode (White & Greenish-Black)' : 'Dark Mode (Black & Navy Blue)'}`}
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <Sun className="w-4 h-4 text-amber-400" />
+                    <span className="hidden sm:inline">Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 text-navy-700" />
+                    <span className="hidden sm:inline">Dark Mode</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={fetchAdminData}
-                className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="p-2 text-slate-500 dark:text-slate-400 hover:text-greenblack-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors"
                 title="Refresh"
               >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex space-x-1 border-t border-slate-800/80 -mb-px overflow-x-auto custom-scrollbar">
+          <div className="flex space-x-2 border-t border-slate-200 dark:border-navy-800/80 -mb-px overflow-x-auto custom-scrollbar pt-1">
             <button
               onClick={() => setActiveTab('anomalies')}
-              className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
                 activeTab === 'anomalies'
-                  ? 'border-amber-500 text-amber-400 bg-amber-500/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-red-500 text-red-600 dark:text-red-400 bg-red-500/10'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-greenblack-900 dark:hover:text-slate-200'
               }`}
             >
               <AlertTriangle className="w-4 h-4" />
               <span>Anomaly Flags</span>
               {anomalies.filter((a) => a.status === 'pending_review').length > 0 && (
-                <span className="ml-1.5 px-2 py-0.5 text-xs bg-red-500 text-white font-bold rounded-full animate-pulse">
+                <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-red-500 text-white font-bold rounded-full animate-pulse">
                   {anomalies.filter((a) => a.status === 'pending_review').length}
                 </span>
               )}
@@ -202,10 +240,10 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('recyclers')}
-              className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
                 activeTab === 'recyclers'
-                  ? 'border-teal-500 text-teal-400 bg-teal-500/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-greenblack-900 dark:border-blue-500 text-greenblack-950 dark:text-blue-400 bg-slate-100 dark:bg-navy-800/60'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-greenblack-900 dark:hover:text-slate-200'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -214,22 +252,22 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('pricing')}
-              className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
                 activeTab === 'pricing'
-                  ? 'border-teal-500 text-teal-400 bg-teal-500/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-greenblack-900 dark:border-blue-500 text-greenblack-950 dark:text-blue-400 bg-slate-100 dark:bg-navy-800/60'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-greenblack-900 dark:hover:text-slate-200'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              <span>Materials & Pricing</span>
+              <span>Market Price Board</span>
             </button>
 
             <button
               onClick={() => setActiveTab('transactions')}
-              className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
                 activeTab === 'transactions'
-                  ? 'border-teal-500 text-teal-400 bg-teal-500/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-greenblack-900 dark:border-blue-500 text-greenblack-950 dark:text-blue-400 bg-slate-100 dark:bg-navy-800/60'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-greenblack-900 dark:hover:text-slate-200'
               }`}
             >
               <Boxes className="w-4 h-4" />
@@ -238,14 +276,14 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('activity')}
-              className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
                 activeTab === 'activity'
-                  ? 'border-teal-500 text-teal-400 bg-teal-500/5'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-greenblack-900 dark:border-blue-500 text-greenblack-950 dark:text-blue-400 bg-slate-100 dark:bg-navy-800/60'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-greenblack-900 dark:hover:text-slate-200'
               }`}
             >
               <Activity className="w-4 h-4" />
-              <span>Platform Activity</span>
+              <span>Platform Audit</span>
             </button>
           </div>
         </div>
@@ -253,9 +291,9 @@ export default function App() {
 
       {/* Alert Banner */}
       {statusMessage && (
-        <div className="bg-teal-900/60 border-b border-teal-700 px-4 py-2.5 text-xs text-teal-200 flex justify-between items-center">
-          <span>{statusMessage}</span>
-          <button onClick={() => setStatusMessage(null)} className="opacity-75 hover:opacity-100">
+        <div className="bg-emerald-50 dark:bg-navy-800 border-b border-emerald-200 dark:border-navy-700 px-4 py-2.5 text-xs text-emerald-900 dark:text-blue-200 flex justify-between items-center">
+          <span className="font-medium">{statusMessage}</span>
+          <button onClick={() => setStatusMessage(null)} className="opacity-75 hover:opacity-100 font-bold">
             Dismiss
           </button>
         </div>
@@ -266,32 +304,32 @@ export default function App() {
         {/* KPI Metric Summary Strip */}
         {metrics && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-              <span className="text-xs text-slate-400 font-medium">Total E-Waste Diverted</span>
-              <div className="text-2xl font-extrabold text-teal-400 mt-1">{metrics.totalEwasteTons} Tons</div>
-              <p className="text-[11px] text-slate-500 mt-1">{metrics.totalEwasteWeightKg} kg logged</p>
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total E-Waste Diverted</span>
+              <div className="text-2xl font-extrabold text-greenblack-950 dark:text-blue-400 mt-1">{metrics.totalEwasteTons} Tons</div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{metrics.totalEwasteWeightKg} kg logged</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-              <span className="text-xs text-slate-400 font-medium">Authorized Recycler Network</span>
-              <div className="text-2xl font-extrabold text-white mt-1">
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Authorized Recycler Network</span>
+              <div className="text-2xl font-extrabold text-greenblack-950 dark:text-white mt-1">
                 {metrics.authorizedRecyclers} / {metrics.totalRecyclers}
               </div>
-              <p className="text-[11px] text-teal-400 mt-1">
-                {Math.round((metrics.authorizedRecyclers / (metrics.totalRecyclers || 1)) * 100)}% CPCB Compliant
+              <p className="text-[11px] text-emerald-700 dark:text-blue-400 font-medium mt-1">
+                {Math.round((metrics.authorizedRecyclers / (metrics.totalRecyclers || 1)) * 100)}% Compliant
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-              <span className="text-xs text-slate-400 font-medium">Formal Collector Payouts</span>
-              <div className="text-2xl font-extrabold text-amber-400 mt-1">₹{metrics.totalPayoutsInr.toLocaleString('en-IN')}</div>
-              <p className="text-[11px] text-slate-500 mt-1">{metrics.completedTransactions} settled transactions</p>
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Formal Collector Payouts</span>
+              <div className="text-2xl font-extrabold text-greenblack-950 dark:text-blue-300 mt-1">₹{metrics.totalPayoutsInr.toLocaleString('en-IN')}</div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{metrics.completedTransactions} settled lots</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-              <span className="text-xs text-slate-400 font-medium">Statistical Anomaly Flags</span>
-              <div className="text-2xl font-extrabold text-red-400 mt-1">{metrics.pendingAnomaliesCount}</div>
-              <p className="text-[11px] text-slate-500 mt-1">&gt; 2σ Price Deviations</p>
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Anomaly Flags</span>
+              <div className="text-2xl font-extrabold text-red-600 dark:text-red-400 mt-1">{metrics.pendingAnomaliesCount}</div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">&gt; 2σ Price Deviations</p>
             </div>
           </div>
         )}
@@ -299,88 +337,89 @@ export default function App() {
         {/* TAB 1: Anomaly Flags */}
         {activeTab === 'anomalies' && (
           <div className="space-y-6">
-            <div className="bg-amber-950/20 border border-amber-800/40 rounded-2xl p-5 flex items-start space-x-4">
-              <AlertTriangle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
-              <div className="text-xs text-slate-300 space-y-1">
-                <p className="font-bold text-amber-300 text-sm">Automated 2-Sigma Transaction Anomaly Detection</p>
-                <p className="text-slate-400">
+            <div className="bg-amber-50 dark:bg-navy-900/90 border border-amber-200 dark:border-navy-800 rounded-2xl p-5 flex items-start space-x-4">
+              <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <p className="font-bold text-amber-900 dark:text-amber-300 text-sm">Automated 2-Sigma Transaction Anomaly Detection</p>
+                <p className="text-slate-600 dark:text-slate-400">
                   Transactions with final settlement rates deviating more than 2 standard deviations (|z-score| &gt; 2.0)
                   from the rolling 30-day baseline for the material and location are flagged for administrative review.
-                  Flags are advisory and do not automatically block legitimate transactions.
                 </p>
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Lot ID</th>
-                    <th className="px-6 py-4 font-semibold">Material</th>
-                    <th className="px-6 py-4 font-semibold">Actual Rate</th>
-                    <th className="px-6 py-4 font-semibold">Expected Mean (30d)</th>
-                    <th className="px-6 py-4 font-semibold">Deviation (Z-Score)</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
-                    <th className="px-6 py-4 font-semibold text-right">Audit Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {anomalies.length === 0 ? (
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-100 dark:bg-navy-950 text-xs uppercase text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-navy-800">
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
-                        No statistical anomalies detected.
-                      </td>
+                      <th className="px-6 py-4 font-semibold">Lot ID</th>
+                      <th className="px-6 py-4 font-semibold">Material</th>
+                      <th className="px-6 py-4 font-semibold">Actual Rate</th>
+                      <th className="px-6 py-4 font-semibold">Expected Mean (30d)</th>
+                      <th className="px-6 py-4 font-semibold">Deviation</th>
+                      <th className="px-6 py-4 font-semibold">Status</th>
+                      <th className="px-6 py-4 font-semibold text-right">Audit Action</th>
                     </tr>
-                  ) : (
-                    anomalies.map((a) => (
-                      <tr key={a.id} className="hover:bg-slate-800/40">
-                        <td className="px-6 py-4 font-mono font-bold text-teal-400">{a.transactionId}</td>
-                        <td className="px-6 py-4 font-semibold text-white">{a.materialCategory}</td>
-                        <td className="px-6 py-4 font-bold text-red-400">₹{a.finalPriceInr} /kg</td>
-                        <td className="px-6 py-4 text-slate-400">₹{a.expectedMeanPriceInr} /kg</td>
-                        <td className="px-6 py-4 font-mono">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/30">
-                            +{a.zScore}σ
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              a.status === 'pending_review'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                            }`}
-                          >
-                            {a.status.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right space-x-2">
-                          {a.status === 'pending_review' ? (
-                            <>
-                              <button
-                                onClick={() => handleResolveAnomaly(a.id, 'resolved')}
-                                className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold inline-flex items-center space-x-1"
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Resolve</span>
-                              </button>
-                              <button
-                                onClick={() => handleResolveAnomaly(a.id, 'dismissed')}
-                                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold inline-flex items-center space-x-1"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                                <span>Dismiss</span>
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-xs text-slate-500 font-semibold">Reviewed</span>
-                          )}
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-navy-800 text-slate-700 dark:text-slate-300">
+                    {anomalies.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                          No statistical anomalies detected.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      anomalies.map((a) => (
+                        <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-navy-850/50 transition-colors">
+                          <td className="px-6 py-4 font-mono font-bold text-greenblack-900 dark:text-blue-400">{a.transactionId}</td>
+                          <td className="px-6 py-4 font-semibold text-greenblack-950 dark:text-white">{a.materialCategory}</td>
+                          <td className="px-6 py-4 font-bold text-red-600 dark:text-red-400">₹{a.finalPriceInr} /kg</td>
+                          <td className="px-6 py-4 text-slate-600 dark:text-slate-400">₹{a.expectedMeanPriceInr} /kg</td>
+                          <td className="px-6 py-4 font-mono">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
+                              +{a.zScore}σ
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                a.status === 'pending_review'
+                                  ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                                  : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                              }`}
+                            >
+                              {a.status.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right space-x-2">
+                            {a.status === 'pending_review' ? (
+                              <>
+                                <button
+                                  onClick={() => handleResolveAnomaly(a.id, 'resolved')}
+                                  className="px-2.5 py-1 rounded-lg bg-greenblack-900 hover:bg-greenblack-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs font-semibold inline-flex items-center space-x-1"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Resolve</span>
+                                </button>
+                                <button
+                                  onClick={() => handleResolveAnomaly(a.id, 'dismissed')}
+                                  className="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-navy-800 dark:hover:bg-navy-700 text-slate-800 dark:text-slate-300 text-xs font-semibold inline-flex items-center space-x-1"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  <span>Dismiss</span>
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Reviewed</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -388,61 +427,59 @@ export default function App() {
         {/* TAB 2: Recyclers & Compliance */}
         {activeTab === 'recyclers' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold text-white">Registered Recycler Facilities</h2>
-                <p className="text-xs text-slate-400">
-                  Verify State Pollution Control Board authorization certificates.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-xl font-bold text-greenblack-950 dark:text-white">Registered Recycler Facilities</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Pollution Control Board authorization verification.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recyclers.map((r) => (
                 <div
                   key={r.id}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-lg"
+                  className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-5 flex flex-col justify-between shadow-sm"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono text-xs text-slate-400">{r.id}</span>
+                      <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{r.id}</span>
                       <span
                         className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
                           r.authorizationStatus === 'authorized'
-                            ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                             : r.authorizationStatus === 'pending'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                            : 'bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-800'
                         }`}
                       >
                         {r.authorizationStatus}
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-white text-base">{r.name}</h3>
-                    <p className="text-xs text-slate-400 mt-1 flex items-start">
-                      <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0 mt-0.5 text-slate-500" />
+                    <h3 className="font-bold text-greenblack-950 dark:text-white text-base">{r.name}</h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-start">
+                      <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0 mt-0.5 text-slate-400" />
                       {r.address}
                     </p>
 
-                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 my-3 text-xs space-y-1">
-                      <span className="text-slate-500 block">Authorization Certificate:</span>
-                      <p className="text-slate-300 font-mono text-[11px] leading-tight">{r.authorizationDetails}</p>
+                    <div className="bg-slate-50 dark:bg-navy-950 p-3 rounded-xl border border-slate-200 dark:border-navy-800/80 my-3 text-xs space-y-1">
+                      <span className="text-slate-500 dark:text-slate-400 block font-medium">Authorization Certificate:</span>
+                      <p className="text-greenblack-900 dark:text-slate-300 font-mono text-[11px] leading-tight">{r.authorizationDetails}</p>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800 flex items-center space-x-2">
+                  <div className="pt-3 border-t border-slate-200 dark:border-navy-800 flex items-center space-x-2">
                     {r.authorizationStatus !== 'authorized' ? (
                       <button
                         onClick={() => handleAuthorizeRecycler(r.id, 'authorized')}
-                        className="w-full py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs"
+                        className="w-full py-2 rounded-xl bg-greenblack-900 hover:bg-greenblack-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-xs shadow-sm transition-colors"
                       >
                         Grant Authorization
                       </button>
                     ) : (
                       <button
                         onClick={() => handleAuthorizeRecycler(r.id, 'unverified')}
-                        className="w-full py-2 rounded-xl bg-slate-800 hover:bg-red-950 text-slate-300 hover:text-red-300 font-semibold text-xs border border-slate-700 hover:border-red-800"
+                        className="w-full py-2 rounded-xl bg-slate-100 hover:bg-red-50 dark:bg-navy-800 dark:hover:bg-red-950 text-slate-700 hover:text-red-700 dark:text-slate-300 dark:hover:text-red-300 font-semibold text-xs border border-slate-300 dark:border-navy-700 transition-colors"
                       >
                         Revoke Authorization
                       </button>
@@ -458,8 +495,8 @@ export default function App() {
         {activeTab === 'pricing' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white">Live Material Price Board Datasets</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-xl font-bold text-greenblack-950 dark:text-white">Live Material Price Board</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Transparent market reference rates derived from authorized aggregator intakes.
               </p>
             </div>
@@ -468,22 +505,22 @@ export default function App() {
               {priceBoard.map((item) => (
                 <div
                   key={item.category}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between"
+                  className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-5 flex flex-col justify-between shadow-sm"
                 >
                   <div>
                     <div className="flex justify-between items-center">
-                      <span className="font-extrabold text-lg text-white">{item.category}</span>
-                      <span className="text-xs text-teal-400 font-bold">{item.trendPercent}</span>
+                      <span className="font-extrabold text-base text-greenblack-950 dark:text-white">{item.category}</span>
+                      <span className="text-xs text-emerald-700 dark:text-blue-400 font-bold">{item.trendPercent}</span>
                     </div>
-                    <div className="text-2xl font-extrabold text-amber-400 mt-2 font-mono">
+                    <div className="text-2xl font-extrabold text-greenblack-900 dark:text-blue-300 mt-2 font-mono">
                       ₹{item.currentRateInrPerKg}
-                      <span className="text-xs text-slate-400 font-normal"> /kg</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-normal"> /kg</span>
                     </div>
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Spread: ₹{item.minRateInrPerKg} – ₹{item.maxRateInrPerKg}
                     </div>
                   </div>
-                  <div className="mt-4 pt-2 border-t border-slate-800 text-[10px] text-slate-500 flex justify-between">
+                  <div className="mt-4 pt-2 border-t border-slate-200 dark:border-navy-800 text-[10px] text-slate-500 dark:text-slate-400 flex justify-between">
                     <span>{item.sampleSize} samples</span>
                     <span className="font-mono">{item.dataMaturity}</span>
                   </div>
@@ -497,43 +534,45 @@ export default function App() {
         {activeTab === 'transactions' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white">Global Traceability & Transaction Log</h2>
-              <p className="text-xs text-slate-400">Full audit trail of material digital lots.</p>
+              <h2 className="text-xl font-bold text-greenblack-950 dark:text-white">Global Traceability & Transaction Log</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Full audit trail of material digital lots.</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Lot ID</th>
-                    <th className="px-6 py-4 font-semibold">Collector</th>
-                    <th className="px-6 py-4 font-semibold">Material</th>
-                    <th className="px-6 py-4 font-semibold">Weight</th>
-                    <th className="px-6 py-4 font-semibold">Recycler</th>
-                    <th className="px-6 py-4 font-semibold">Amount</th>
-                    <th className="px-6 py-4 font-semibold">Stage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {transactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-800/40">
-                      <td className="px-6 py-4 font-mono font-bold text-teal-400">{tx.id}</td>
-                      <td className="px-6 py-4 text-white font-medium">{tx.collectorName || 'Ramesh'}</td>
-                      <td className="px-6 py-4">{tx.material.category}</td>
-                      <td className="px-6 py-4 font-medium">{tx.weightKg} kg</td>
-                      <td className="px-6 py-4 text-slate-400">{tx.recyclerName || 'Unmatched'}</td>
-                      <td className="px-6 py-4 font-bold text-amber-400">
-                        ₹{tx.finalPriceInr || tx.quotedPriceInr}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-200 capitalize">
-                          {tx.transactionStatus.replace('_', ' ')}
-                        </span>
-                      </td>
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-100 dark:bg-navy-950 text-xs uppercase text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-navy-800">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold">Lot ID</th>
+                      <th className="px-6 py-4 font-semibold">Collector</th>
+                      <th className="px-6 py-4 font-semibold">Material</th>
+                      <th className="px-6 py-4 font-semibold">Weight</th>
+                      <th className="px-6 py-4 font-semibold">Recycler</th>
+                      <th className="px-6 py-4 font-semibold">Amount</th>
+                      <th className="px-6 py-4 font-semibold">Stage</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-navy-800 text-slate-700 dark:text-slate-300">
+                    {transactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-navy-850/50 transition-colors">
+                        <td className="px-6 py-4 font-mono font-bold text-greenblack-900 dark:text-blue-400">{tx.id}</td>
+                        <td className="px-6 py-4 text-greenblack-950 dark:text-white font-medium">{tx.collectorName || 'Ramesh'}</td>
+                        <td className="px-6 py-4">{tx.material.category}</td>
+                        <td className="px-6 py-4 font-medium">{tx.weightKg} kg</td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{tx.recyclerName || 'Unmatched'}</td>
+                        <td className="px-6 py-4 font-bold text-greenblack-900 dark:text-blue-300">
+                          ₹{tx.finalPriceInr || tx.quotedPriceInr}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-800 dark:text-slate-200 capitalize font-medium">
+                            {tx.transactionStatus.replace('_', ' ')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -542,16 +581,16 @@ export default function App() {
         {activeTab === 'activity' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white">System Architecture & Audit Log</h2>
-              <p className="text-xs text-slate-400">Immutable platform security and state transition records.</p>
+              <h2 className="text-xl font-bold text-greenblack-950 dark:text-white">System Architecture & Audit Log</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Immutable platform security and state transition records.</p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center space-x-3 text-sm text-teal-400 font-bold">
-                <CheckCircle2 className="w-5 h-5" />
-                <span>Prisma ORM & PostgreSQL / SQLite Relational Engine Active</span>
+            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-6 space-y-4 shadow-sm">
+              <div className="flex items-center space-x-3 text-sm text-greenblack-950 dark:text-blue-400 font-bold">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-blue-400" />
+                <span>Enterprise Relational Data Integrity Active</span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 All digital material lots, GPS coordinates, verified scale weights, and transaction timeline events are
                 cryptographically tagged with role-based access control and persistent audit logging.
               </p>

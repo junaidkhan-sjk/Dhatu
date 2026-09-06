@@ -10,11 +10,12 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  // Dynamic base URL: Physical Android device / LAN IP
+  // Dynamic base URL: Physical Android device / LAN / ADB reverse
   String get baseUrl {
     if (kIsWeb) return 'http://localhost:5000/api';
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.48.165.93:5000/api';
+      // ADB reverse maps 127.0.0.1:5000 directly to host PC
+      return 'http://127.0.0.1:5000/api';
     }
     return 'http://localhost:5000/api';
   }

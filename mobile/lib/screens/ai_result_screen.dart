@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import '../theme/theme_manager.dart';
 import '../widgets/core/dhatu_card.dart';
 import '../widgets/core/dhatu_button.dart';
-import 'digital_handover_screen.dart';
+import 'estimated_value_screen.dart';
 
-class RecyclerOfferScreen extends StatelessWidget {
-  const RecyclerOfferScreen({Key? key}) : super(key: key);
+class AiResultScreen extends StatelessWidget {
+  const AiResultScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class RecyclerOfferScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.backgroundColor,
       appBar: AppBar(
-        title: Text('Offer Details', style: TextStyle(color: theme.textColor)),
+        title: Text('Analysis Result', style: TextStyle(color: theme.textColor)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.textColor),
@@ -29,28 +29,35 @@ class RecyclerOfferScreen extends StatelessWidget {
               DhatuCard(
                 child: Column(
                   children: [
-                    const Icon(Icons.verified, color: Colors.blue, size: 48),
-                    const SizedBox(height: 16),
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Icon(Icons.image, size: 80, color: theme.primaryColor), // Mock photo
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     Text(
-                      'GreenTech Recyclers',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.textColor),
+                      'Identified Material',
+                      style: TextStyle(fontSize: 16, color: theme.subtitleColor),
                     ),
                     const SizedBox(height: 8),
-                    Text('Authorized E-Waste Recycler', style: TextStyle(color: theme.subtitleColor)),
-                    const Divider(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Your Lot', style: TextStyle(fontSize: 16, color: theme.subtitleColor)),
-                        Text('5.0 kg Copper Wires', style: TextStyle(fontSize: 16, color: theme.textColor, fontWeight: FontWeight.w500)),
-                      ],
+                    Text(
+                      'Mixed Copper Wires',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: theme.textColor),
                     ),
                     const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Offer Price', style: TextStyle(fontSize: 16, color: theme.subtitleColor)),
-                        Text('₹1,350', style: TextStyle(fontSize: 24, color: theme.primaryColor, fontWeight: FontWeight.bold)),
+                        Chip(
+                          label: const Text('High Confidence (94%)'),
+                          backgroundColor: Colors.green.withOpacity(0.2),
+                          labelStyle: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ],
@@ -61,9 +68,9 @@ class RecyclerOfferScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: DhatuButton(
-                      text: 'Reject',
-                      icon: Icons.close_rounded,
+                      text: 'Change',
                       isPrimary: false,
+                      icon: Icons.edit,
                       onPressed: () {
                         Navigator.pop(context);
                       },
@@ -72,12 +79,12 @@ class RecyclerOfferScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: DhatuButton(
-                      text: 'Accept',
-                      icon: Icons.check_circle_rounded,
+                      text: 'Confirm',
                       isPrimary: true,
+                      icon: Icons.check,
                       onPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const DigitalHandoverScreen()),
+                          MaterialPageRoute(builder: (_) => const EstimatedValueScreen()),
                         );
                       },
                     ),

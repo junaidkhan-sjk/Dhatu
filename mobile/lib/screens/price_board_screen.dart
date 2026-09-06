@@ -1,194 +1,87 @@
 import 'package:flutter/material.dart';
-import '../models/price_model.dart';
-import '../services/api_service.dart';
-import '../services/audio_service.dart';
-import '../services/localization_service.dart';
-import 'price_history_screen.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_manager.dart';
+import '../widgets/core/dhatu_card.dart';
 
-class PriceBoardScreen extends StatefulWidget {
-  const PriceBoardScreen({super.key});
-
-  @override
-  State<PriceBoardScreen> createState() => _PriceBoardScreenState();
-}
-
-class _PriceBoardScreenState extends State<PriceBoardScreen> {
-  List<PriceBoardCard> _cards = [];
-  String _selectedCategory = 'All';
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchPrices();
-  }
-
-  void _fetchPrices() async {
-    setState(() => _loading = true);
-    final board = await ApiService().getPriceBoard();
-    setState(() {
-      _cards = board;
-      _loading = false;
-    });
-  }
+class PriceBoardScreen extends StatelessWidget {
+  const PriceBoardScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final loc = LocalizationService();
-    final categories = ['All', 'PCB', 'Battery', 'Cable', 'CRT', 'Motor'];
-
-    final filtered = _selectedCategory == 'All'
-        ? _cards
-        : _cards.where((c) => c.category == _selectedCategory).toList();
+    final theme = Provider.of<ThemeManager>(context);
+    
+    // Mock data for prices
+    final List<Map<String, dynamic>> prices = [
+      {'material': 'Copper (Mixed)', 'price': '₹250 - ₹280', 'trend': 'up'},
+      {'material': 'Aluminium', 'price': '₹120 - ₹140', 'trend': 'stable'},
+      {'material': 'Iron/Steel', 'price': '₹25 - ₹35', 'trend': 'down'},
+      {'material': 'E-Waste (PCBs)', 'price': '₹400 - ₹600', 'trend': 'up'},
+    ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1120),
+      backgroundColor: theme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        title: Text('Today\'s Price Board', style: TextStyle(color: theme.textColor)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('पारदर्शी भाव सूची (Price Board)', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
-        actions: [
-          IconButton(
-            onPressed: () {
-              final text = 'आज के मुख्य दर: सर्किट बोर्ड 135 रुपये, तांबा केबल 240 रुपये, बैटरी 85 रुपये प्रति किलो।';
-              AudioService().speak(text, lang: loc.currentLanguage);
-            },
-            icon: const Icon(Icons.volume_up_rounded, color: Color(0xFFE0A526)),
-            tooltip: 'Listen to All Rates',
-          ),
-        ],
+        iconTheme: IconThemeData(color: theme.textColor),
       ),
-      body: Column(
-        children: [
-          // Filter Chips
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFF0F172A),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+      body: SafeArea(
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          itemCount: prices.length,
+          itemBuilder: (context, index) {
+            final item = prices[index];
+            return DhatuCard(
               child: Row(
-                children: categories.map((cat) {
-                  final isSelected = _selectedCategory == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      selected: isSelected,
-                      label: Text(cat == 'All' ? 'सभी सामग्री (All)' : cat),
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? Colors.black : Colors.white70,
-                      ),
-                      backgroundColor: const Color(0xFF1E293B),
-                      selectedColor: const Color(0xFFE0A526),
-                      checkmarkColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      onSelected: (val) {
-                        setState(() => _selectedCategory = cat);
-                      },
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFFE0A526)))
-                : ListView.separated(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 14),
-                    itemBuilder: (context, index) {
-                      final item = filtered[index];
-
-                      return Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.category,
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.teal.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    item.trendPercent,
-                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.tealAccent),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-
-                            Row(
-                              children: [
-                                Text(
-                                  '₹${item.currentRateInrPerKg.toInt()}',
-                                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFFE0A526), fontFamily: 'monospace'),
-                                ),
-                                const Text(
-                                  ' /kg',
-                                  style: TextStyle(fontSize: 14, color: Colors.white60),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  onPressed: () {
-                                    final text = '${item.category} का आज का दर ${item.currentRateInrPerKg.toInt()} रुपये प्रति किलो है।';
-                                    AudioService().speak(text, lang: loc.currentLanguage);
-                                  },
-                                  icon: const Icon(Icons.volume_up_rounded, color: Color(0xFFE0A526)),
-                                ),
-                              ],
-                            ),
-
-                            Text(
-                              'बाज़ार सीमा: ₹${item.minRateInrPerKg.toInt()} – ₹${item.maxRateInrPerKg.toInt()} /kg',
-                              style: const TextStyle(fontSize: 11, color: Colors.white54),
-                            ),
-                            const SizedBox(height: 12),
-
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => PriceHistoryScreen(category: item.category),
-                                  ),
-                                );
-                              },
-                              child: const Row(
-                                children: [
-                                  Text(
-                                    'इतिहास व रुझान देखें (View History & Chart)',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.tealAccent),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Icon(Icons.arrow_forward_rounded, size: 14, color: Colors.tealAccent),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                    child: Icon(Icons.recycling, color: theme.primaryColor),
                   ),
-          ),
-        ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['material'],
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textColor),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Per Kg',
+                          style: TextStyle(color: theme.subtitleColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        item['price'],
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.primaryColor),
+                      ),
+                      const SizedBox(height: 4),
+                      Icon(
+                        item['trend'] == 'up' ? Icons.trending_up : (item['trend'] == 'down' ? Icons.trending_down : Icons.trending_flat),
+                        color: item['trend'] == 'up' ? Colors.green : (item['trend'] == 'down' ? Colors.red : Colors.grey),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Icon(Icons.volume_up, color: theme.subtitleColor), // Audio icon requirement
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -124,5 +124,23 @@ export function createRecyclersRouter(prisma: PrismaClient) {
     return res.json(updated);
   });
 
+  // PUT /api/recyclers/:id/authorization - update authorization status (admin only)
+  router.put('/:id/authorization', requireAuth, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+    const { status } = req.body;
+    if (!status || !['authorized', 'pending', 'unverified', 'revoked', 'expired'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid authorization status.' });
+    }
+
+    try {
+      const updated = await prisma.recycler.update({
+        where: { id: req.params.id },
+        data: { authorizationStatus: status }
+      });
+      return res.json(updated);
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to update authorization status.' });
+    }
+  });
+
   return router;
 }

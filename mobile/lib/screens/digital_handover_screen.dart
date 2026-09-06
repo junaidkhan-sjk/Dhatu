@@ -1,139 +1,112 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_manager.dart';
+import '../widgets/core/dhatu_card.dart';
+import '../widgets/core/dhatu_button.dart';
 import 'handover_confirmation_screen.dart';
 
-class DigitalHandoverScreen extends StatefulWidget {
-  final String lotId;
-  final String recyclerName;
-  final double agreedPrice;
-
-  const DigitalHandoverScreen({
-    super.key,
-    required this.lotId,
-    required this.recyclerName,
-    required this.agreedPrice,
-  });
-
-  @override
-  State<DigitalHandoverScreen> createState() => _DigitalHandoverScreenState();
-}
-
-class _DigitalHandoverScreenState extends State<DigitalHandoverScreen> {
-  double _finalWeightKg = 12.5;
-  bool _photoCaptured = true;
-  bool _submitting = false;
-
-  void _submitHandover() async {
-    setState(() => _submitting = true);
-    await ApiService().handoverLot(widget.lotId, _finalWeightKg);
-    setState(() => _submitting = false);
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HandoverConfirmationScreen(
-            lotId: widget.lotId,
-            referenceNumber: 'REF-${widget.lotId.replaceAll('DH-', '')}',
-            recyclerName: widget.recyclerName,
-            finalPrice: widget.agreedPrice,
-            weightKg: _finalWeightKg,
-          ),
-        ),
-      );
-    }
-  }
+class DigitalHandoverScreen extends StatelessWidget {
+  const DigitalHandoverScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B1120),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        title: const Text('डिजिटल हैंडओवर (Digital Handover)', style: TextStyle(fontSize: 16, color: Colors.white)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'सामग्री सुपुर्दगी व कांटा सत्यापन\nHandover & Scale Verification',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'रीसायकलर के कांटे पर तौला गया अंतिम वजन दर्ज करें:',
-              style: TextStyle(fontSize: 13, color: Colors.white60),
-            ),
-            const SizedBox(height: 24),
+    final theme = Provider.of<ThemeManager>(context);
 
-            // Handover Photo Proof Box
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF0F6B6B), width: 1.5),
-              ),
-              child: Center(
+    return Scaffold(
+      backgroundColor: theme.backgroundColor,
+      appBar: AppBar(
+        title: Text('Digital Handover', style: TextStyle(color: theme.textColor)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: theme.textColor),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DhatuCard(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      _photoCaptured ? Icons.check_circle_rounded : Icons.camera_alt_rounded,
-                      size: 48,
-                      color: const Color(0xFFE0A526),
-                    ),
+                    Text('Reference Number', style: TextStyle(color: theme.subtitleColor)),
                     const SizedBox(height: 8),
-                    Text(
-                      _photoCaptured ? 'हैंडओवर फोटो संलग्न (Photo Verified)' : 'हैंडओवर फोटो खींचें',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                    Text('DHT-9982-XYZ', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.primaryColor, letterSpacing: 2)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Map Pin Mock
+              DhatuCard(
+                child: Column(
+                  children: [
+                    Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.map, size: 48, color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: theme.primaryColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'GreenTech Facility, Plot 42, MIDC',
+                            style: TextStyle(color: theme.textColor, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-            // Weight Confirmation Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                children: [
-                  const Text('कांटे का अंतिम वजन (Final Scale Weight)', style: TextStyle(fontSize: 12, color: Colors.white60)),
-                  const SizedBox(height: 8),
-                  Text(
-                    '$_finalWeightKg kg',
-                    style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Color(0xFFE0A526), fontFamily: 'monospace'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            if (_submitting)
-              const Center(child: CircularProgressIndicator(color: Color(0xFFE0A526)))
-            else
-              SizedBox(
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _submitHandover,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F6B6B),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: const Text('हैंडओवर पुष्टि करें (Confirm Handover) ✓', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              // Final Confirmations
+              DhatuCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Verify Final Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textColor)),
+                    const SizedBox(height: 16),
+                    _buildCheckRow(theme, 'Final Weight: 5.2 kg (+0.2 kg)'),
+                    const SizedBox(height: 8),
+                    _buildCheckRow(theme, 'Final Price: ₹1,404'),
+                  ],
                 ),
               ),
-          ],
+              
+              const SizedBox(height: 32),
+              DhatuButton(
+                text: 'Confirm Handover & Payment',
+                icon: Icons.qr_code_scanner,
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const HandoverConfirmationScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCheckRow(ThemeManager theme, String text) {
+    return Row(
+      children: [
+        Icon(Icons.check_circle, color: theme.primaryColor, size: 20),
+        const SizedBox(width: 8),
+        Text(text, style: TextStyle(color: theme.textColor, fontSize: 16)),
+      ],
     );
   }
 }

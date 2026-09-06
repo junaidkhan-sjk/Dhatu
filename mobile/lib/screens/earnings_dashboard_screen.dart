@@ -1,167 +1,126 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../services/audio_service.dart';
-import '../services/localization_service.dart';
-import 'payment_status_screen.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_manager.dart';
+import '../widgets/core/dhatu_card.dart';
+import 'transaction_history_screen.dart';
 
-class EarningsDashboardScreen extends StatefulWidget {
-  const EarningsDashboardScreen({super.key});
-
-  @override
-  State<EarningsDashboardScreen> createState() => _EarningsDashboardScreenState();
-}
-
-class _EarningsDashboardScreenState extends State<EarningsDashboardScreen> {
-  Map<String, dynamic> _summary = {};
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchEarnings();
-  }
-
-  void _fetchEarnings() async {
-    setState(() => _loading = true);
-    final data = await ApiService().getEarningsSummary();
-    setState(() {
-      _summary = data;
-      _loading = false;
-    });
-  }
+class EarningsDashboardScreen extends StatelessWidget {
+  const EarningsDashboardScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final loc = LocalizationService();
-
-    final today = _summary['todayEarningsInr'] ?? 2030;
-    final total = _summary['totalEarningsInr'] ?? 8575;
-    final pending = _summary['pendingEarningsInr'] ?? 3600;
-    final completedCount = _summary['completedCount'] ?? 2;
+    final theme = Provider.of<ThemeManager>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1120),
+      backgroundColor: theme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        title: Text('My Earnings', style: TextStyle(color: theme.textColor)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('कमाई डैशबोर्ड (Earnings Dashboard)', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
-        actions: [
-          IconButton(
-            onPressed: () {
-              final text = 'आपकी आज की कमाई $today रुपये है, और कुल कमाई $total रुपये हो चुकी है।';
-              AudioService().speak(text, lang: loc.currentLanguage);
-            },
-            icon: const Icon(Icons.volume_up_rounded, color: Color(0xFFE0A526)),
-          ),
-        ],
+        iconTheme: IconThemeData(color: theme.textColor),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Big Today's Earnings Card
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0F6B6B), Color(0xFF073838)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFE0A526), width: 1.5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 4 Stat Cards
+              Row(
                 children: [
-                  const Text("आज की कमाई (Today's Earnings)", style: TextStyle(fontSize: 14, color: Colors.white70)),
-                  const SizedBox(height: 8),
-                  Text(
-                    '₹$today',
-                    style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w900, color: Color(0xFFE0A526), fontFamily: 'monospace'),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text('डिजिटल व बैंक ट्रांसफर द्वारा भुगतान प्राप्त', style: TextStyle(fontSize: 12, color: Colors.tealAccent)),
+                  Expanded(child: _buildStatCard(theme, 'Today', '₹1,404')),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard(theme, 'This Week', '₹4,250')),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-
-            // Summary 2-Card Grid
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMetricCard(
-                    title: 'कुल कमाई (Total)',
-                    amount: '₹$total',
-                    subtitle: '$completedCount सौदे पूर्ण',
-                    color: Colors.tealAccent,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _buildMetricCard(
-                    title: 'प्रलंबित (Pending)',
-                    amount: '₹$pending',
-                    subtitle: 'सत्यापन प्रक्रिया में',
-                    color: const Color(0xFFE0A526),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Button to open Detailed Payment Status
-            SizedBox(
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PaymentStatusScreen()),
-                  );
-                },
-                icon: const Icon(Icons.receipt_long_rounded),
-                label: const Text('लेन-देन विवरण (View Payment Status) →', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E293B),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  side: const BorderSide(color: Colors.white24),
-                ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _buildStatCard(theme, 'Pending', '₹0', isHighlight: true)),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard(theme, 'Total Lots', '12')),
+                ],
               ),
-            ),
-          ],
+              
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Recent Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.textColor)),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()),
+                      );
+                    },
+                    child: Text('View All', style: TextStyle(color: theme.primaryColor)),
+                  )
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Mock Recent Transactions
+              _buildTransactionRow(theme, 'Mixed Copper Wires', '₹1,404', 'Today', true),
+              _buildTransactionRow(theme, 'Aluminium Cans', '₹350', 'Yesterday', true),
+              _buildTransactionRow(theme, 'Old Batteries', '₹800', '12 May', false), // Offline saved state
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMetricCard({
-    required String title,
-    required String amount,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
+  Widget _buildStatCard(ThemeManager theme, String title, String value, {bool isHighlight = false}) {
+    return DhatuCard(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.white60)),
-          const SizedBox(height: 6),
+          Text(title, style: TextStyle(color: theme.subtitleColor, fontSize: 14)),
+          const SizedBox(height: 8),
           Text(
-            amount,
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color, fontFamily: 'monospace'),
+            value, 
+            style: TextStyle(
+              fontSize: 24, 
+              fontWeight: FontWeight.bold, 
+              color: isHighlight ? Colors.orange : theme.textColor
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(fontSize: 10, color: Colors.white54)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionRow(ThemeManager theme, String title, String amount, String date, bool isSynced) {
+    return DhatuCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isSynced ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isSynced ? Icons.cloud_done : Icons.cloud_off, 
+              color: isSynced ? Colors.green : Colors.orange,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: theme.textColor)),
+                Text(date, style: TextStyle(fontSize: 12, color: theme.subtitleColor)),
+              ],
+            ),
+          ),
+          Text(amount, style: TextStyle(fontWeight: FontWeight.bold, color: theme.primaryColor, fontSize: 16)),
         ],
       ),
     );
